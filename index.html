@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AIM Morning Scanner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e0e0e0;min-height:100vh;padding:24px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.top-label{font-size:13px;color:#888;white-space:nowrap}
+.acct-wrap{position:relative;display:flex;align-items:center}
+.pound{position:absolute;left:9px;font-size:13px;color:#555}
+.acct-in{padding:8px 10px 8px 22px;border:1px solid #2a2a2a;border-radius:8px;background:#1a1a1a;color:#fff;font-size:13px;width:130px}
+.acct-in:focus{outline:none;border-color:#444}
+.risk-sel{padding:8px 10px;border:1px solid #2a2a2a;border-radius:8px;background:#1a1a1a;color:#e0e0e0;font-size:13px;cursor:pointer}
+.scan-btn{background:#22c55e;border:none;border-radius:8px;color:#000;font-size:13px;font-weight:600;padding:9px 18px;cursor:pointer;transition:background .15s;white-space:nowrap}
+.scan-btn:hover{background:#16a34a}
+.scan-btn:disabled{opacity:.45;cursor:not-allowed;background:#22c55e}
+.last{font-size:11px;color:#444}
+.after-hours{background:#1c1400;border:1px solid #3a2800;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#f59e0b;line-height:1.65}
+.after-hours strong{font-weight:600}
+.mkt-bar{background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.rpill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.rlow{background:#052e16;color:#22c55e}
+.rmed{background:#1c1a07;color:#eab308}
+.rhigh{background:#1a0707;color:#ef4444}
+.mkt-txt{font-size:12px;color:#aaa;flex:1;line-height:1.6}
+.mkt-dt{font-size:11px;color:#444;white-space:nowrap}
+.sec-head{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#555;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-head::after{content:'';flex:1;height:1px;background:#1e1e1e}
+.card{background:#111;border:1px solid #1e1e1e;border-radius:12px;overflow:hidden;margin-bottom:10px}
+.card:hover{border-color:#2a2a2a}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;border-bottom:1px solid #1a1a1a;flex-wrap:wrap;gap:6px}
+.tkr-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tkr{font-size:16px;font-weight:700;font-family:'Courier New',monospace;color:#fff;letter-spacing:.04em}
+.co{font-size:12px;color:#555}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+.bt1{background:#0c1a2e;color:#60a5fa}
+.bt2{background:#052e16;color:#4ade80}
+.bt3{background:#1c1a07;color:#fbbf24}
+.sct{font-size:10px;color:#444}
+.sc-wrap{display:flex;align-items:center;gap:6px}
+.sc-num{font-size:13px;font-weight:700;font-family:'Courier New',monospace}
+.sc-bar{width:48px;height:3px;background:#1e1e1e;border-radius:2px;overflow:hidden}
+.sc-fill{height:100%;border-radius:2px}
+.card-body{padding:12px 14px}
+.cat-txt{font-size:12px;color:#ccc;line-height:1.65;margin-bottom:8px}
+.cat-lbl{font-weight:600;color:#666}
+.freshness{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
+.fresh-today{background:#052e16;color:#22c55e}
+.fresh-yesterday{background:#0c1a2e;color:#60a5fa}
+.price-confirm{font-size:11px;margin-bottom:10px;padding:6px 9px;border-radius:6px;line-height:1.5}
+.pc-positive{background:#052e16;color:#4ade80;border-left:2px solid #22c55e}
+.pc-negative{background:#1a0707;color:#f87171;border-left:2px solid #ef4444}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.mbox{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:8px;padding:7px 8px;text-align:center}
+.mlbl{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.mval{font-size:12px;font-weight:600;font-family:'Courier New',monospace}
+.me{color:#e0e0e0}.ms{color:#ef4444}.mt{color:#22c55e}.mr{color:#a78bfa}
+.rat{font-size:11px;color:#666;line-height:1.65;margin-bottom:8px}
+.krisk{font-size:11px;color:#f59e0b;background:#1c1400;border-radius:6px;padding:6px 9px;border-left:2px solid #f59e0b;line-height:1.5}
+.alloc-strip{background:#0a0a0a;border-top:1px solid #1a1a1a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.alloc-main{font-size:14px;font-weight:700;color:#fff;font-family:'Courier New',monospace}
+.alloc-sub{font-size:11px;color:#555;margin-top:2px}
+.alloc-stats{display:flex;gap:12px;font-size:11px;flex-wrap:wrap}
+.asr{color:#ef4444}.asu{color:#22c55e}.ast{color:#f59e0b}
+.w-wrap{background:#111;border:1px solid #1e1e1e;border-radius:10px;overflow:hidden}
+.w-row{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid #1a1a1a;align-items:flex-start}
+.w-row:last-child{border-bottom:none}
+.wtkr{font-size:12px;font-weight:700;font-family:'Courier New',monospace;width:64px;flex-shrink:0;color:#fff}
+.wco{font-size:11px;color:#555;width:130px;flex-shrink:0}
+.wrsn{font-size:11px;color:#555;flex:1;line-height:1.55}
+.empty{text-align:center;padding:40px 16px}
+.empty-ico{font-size:28px;margin-bottom:10px}
+.empty-ttl{font-size:14px;font-weight:600;color:#ccc;margin-bottom:6px}
+.empty-sub{font-size:12px;color:#555;line-height:1.7;max-width:360px;margin:0 auto}
+.load-wrap{text-align:center;padding:40px 16px}
+.ldots{display:inline-flex;gap:5px;margin-bottom:12px}
+.ldot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:lb 1.2s ease-in-out infinite}
+.ldot:nth-child(2){animation-delay:.2s}.ldot:nth-child(3){animation-delay:.4s}
+@keyframes lb{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.llbl{font-size:13px;color:#888;margin-bottom:5px}
+.lstep{font-size:11px;color:#444}
+.errbox{background:#1a0707;border:1px solid #3a0e0e;border-radius:10px;padding:14px;color:#ef4444;font-size:13px;line-height:1.65}
+.errbox strong{font-weight:600;display:block;margin-bottom:4px}
+.disc{font-size:10px;color:#333;line-height:1.7;padding:14px 0;border-top:1px solid #1a1a1a;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="top-label">AIM Morning Scanner</span>
+  <div class="acct-wrap"><span class="pound">£</span><input class="acct-in" id="av" type="number" value="10000" placeholder="10000"></div>
+  <select class="risk-sel" id="rm">
+    <option value="1">1% — cautious</option>
+    <option value="1.5" selected>1.5% — standard</option>
+    <option value="2">2% — aggressive</option>
+  </select>
+  <button class="scan-btn" id="sbtn" onclick="runScan()">▶ Run morning scan</button>
+  <span class="last" id="lscan"></span>
+</div>
+
+<div id="res">
+  <div class="empty">
+    <div class="empty-ico">📡</div>
+    <div class="empty-ttl">Ready to scan</div>
+    <div class="empty-sub">Best run 7:00–7:50am weekdays before LSE open. Enter your ISA balance, set risk level, then hit scan.</div>
+  </div>
+</div>
+
+<div class="disc">⚠ AI research only — not regulated financial advice under FSMA 2000. AIM stocks carry significant risk including total loss of capital. Always verify independently before trading. Stamp duty 0.5% applies unless SEIS/EIS exempt. Educational purposes only.</div>
+
+<script>
+let last=null;
+const STEPS=[
+  'Searching fresh RNS from today and yesterday only...',
+  'Checking price held up since each catalyst...',
+  'Scanning for volume confirmation...',
+  'Scoring setups against all criteria...',
+  'Calculating position sizes...'
+];
+
+function isAfterHours(){
+  const now=new Date();
+  const mins=now.getUTCHours()*60+now.getUTCMinutes(),day=now.getUTCDay();
+  if(day===0||day===6)return true;
+  if(mins<7*60||mins>16*30)return true;
+  return false;
+}
+
+function buildPrompt(today){
+  return `Today is ${today}. You are a professional UK small-cap momentum trader doing a morning scan of AIM stocks.
+
+RULE 1 — FRESHNESS (hard filter, no exceptions):
+Only consider RNS announcements published TODAY or on the most recent trading day (yesterday if today is Monday, Friday's RNS if today is Tuesday after a bank holiday etc).
+IMMEDIATELY DISCARD any catalyst that is 3 or more calendar days old. Do not include it as a recommendation. Do not mention it as a watchlist item unless you explicitly note it is stale. If the only catalysts you can find are older than 2 trading days, return empty recommendations — do not force a setup.
+
+RULE 2 — PRICE CONFIRMATION (hard filter, no exceptions):
+After finding a fresh catalyst, check whether the stock price has held up since the announcement.
+IMMEDIATELY DISCARD the setup if: the stock is down more than 3% from its post-RNS high, or the stock gapped up then immediately faded back to pre-RNS levels.
+A strong setup shows price holding near the day's high or continuing to build. Weakness after a catalyst means the market is rejecting it.
+
+Search for:
+1. AIM RNS announcements published TODAY or YESTERDAY — resource upgrades, signed contracts, clinical trial data, revenue beats, positive trading updates with hard numbers
+2. Current price action confirming each catalyst (stock holding up, not fading)
+3. Volume data showing unusual buying on the catalyst day
+4. AIM All-Share direction and UK small-cap sentiment today
+
+Scoring (only for setups that pass both hard filters above):
+- Catalyst quality (2pts): hard data with specific numbers=2, soft announcement or MOU=1, vague update=0
+- Volume (2pts): 3x+ average=2, 2x average=1, normal=0
+- Price action (2pts): holding at/above catalyst high, tight consolidation=2, mixed=1, fading=0 (note: fading = discard, so this should never score 0 if it passed Rule 2)
+- Float (2pts): under 100m shares=2, 100-250m=1, over 250m=0
+- Market conditions (2pts): sector hot plus AIM positive=2, neutral=1, both negative=0
+
+Only include setups scoring 6 or higher. Empty recommendations is a valid and often correct result.
+
+CRITICAL: Respond with only a single valid JSON object. No explanation, no markdown, no code fences. Start with { and end with }.
+
+{"market_context":"2 sentences on AIM conditions today or why no fresh setups exist","market_risk":"low","scan_date":"${today}","recommendations":[{"ticker":"TICKER","company":"Full Company Name plc","sector":"Mining","setup_type":"T1","setup_name":"Catalyst Breakout","score":8,"catalyst_date":"today","price_action_since":"Gapped up 15% at open, consolidating tightly in 5% range since 8:30am on low volume — classic bull flag","catalyst":"Specific factual description with actual numbers from the RNS","entry_low":45,"entry_high":50,"stop_loss":40,"target":78,"key_risk":"Single biggest risk in one sentence","rationale":"2-3 sentences on why this passes both hard filters and scores well"}],"watchlist":[{"ticker":"TICKER","company":"Company Name","reason":"Why interesting but filtered out — e.g. catalyst from 4 days ago and price faded 5% since"}]}`;
+}
+
+async function runScan(){
+  const btn=document.getElementById('sbtn');
+  const acc=parseFloat(document.getElementById('av').value)||10000;
+  const rk=parseFloat(document.getElementById('rm').value)||1.5;
+  btn.disabled=true;btn.textContent='⏳ Scanning...';
+  document.getElementById('res').innerHTML=`<div class="load-wrap"><div class="ldots"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div><div class="llbl">AI scanning AIM — fresh catalysts only</div><div class="lstep" id="ls">${STEPS[0]}</div></div>`;
+  let si=0;
+  const st=setInterval(()=>{si=(si+1)%STEPS.length;const e=document.getElementById('ls');if(e)e.textContent=STEPS[si];},4000);
+  try{
+    const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:3000,
+        system:'You are a JSON API. You must respond with only a valid JSON object. Never include any text, explanation, or markdown outside the JSON. Your response must start with { and end with }. No exceptions.',
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:buildPrompt(today)}]
+      })
+    });
+    clearInterval(st);
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error?.message||`API error ${r.status}`);
+    const allText=(d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    if(!allText)throw new Error('No response from AI. This can happen outside market hours. Try again at 7am.');
+    let parsed=null;
+    const strategies=[
+      ()=>JSON.parse(allText),
+      ()=>{const m=allText.match(/```(?:json)?\s*([\s\S]*?)```/);if(m)return JSON.parse(m[1].trim());throw new Error('x');},
+      ()=>{const m=allText.match(/(\{[\s\S]*\})/);if(m)return JSON.parse(m[1]);throw new Error('x');},
+      ()=>{const s=allText.indexOf('{'),e=allText.lastIndexOf('}');if(s>=0&&e>s)return JSON.parse(allText.slice(s,e+1));throw new Error('x');}
+    ];
+    for(const fn of strategies){try{parsed=fn();break;}catch(e){}}
+    if(!parsed)throw new Error('Could not parse response.<br><pre style="font-size:10px;margin-top:8px;opacity:.6;white-space:pre-wrap">'+allText.slice(0,400)+'</pre>');
+    last={parsed,acc,rk};
+    render(parsed,acc,rk);
+    document.getElementById('lscan').textContent=`Scanned ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+  }catch(e){
+    clearInterval(st);
+    document.getElementById('res').innerHTML=`<div class="errbox"><strong>Scan failed</strong>${e.message}</div>`;
+  }
+  btn.disabled=false;btn.textContent='▶ Run morning scan';
+}
+
+function render(data,acc,rk){
+  const recs=(data.recommendations||[]).filter(r=>r&&r.ticker).sort((a,b)=>b.score-a.score);
+  const watch=(data.watchlist||[]).filter(w=>w&&w.ticker);
+  const rc=data.market_risk==='low'?'rlow':data.market_risk==='high'?'rhigh':'rmed';
+  const rl=data.market_risk==='low'?'● Low risk':data.market_risk==='high'?'● High risk':'● Medium risk';
+  let h='';
+  if(isAfterHours())h+=`<div class="after-hours"><strong>Outside market hours</strong> — scan used recently available data. Price levels may be from the last session. Best results when run 7:00–7:50am on a weekday.</div>`;
+  h+=`<div class="mkt-bar"><span class="rpill ${rc}">${rl}</span><span class="mkt-txt">${data.market_context||''}</span><span class="mkt-dt">${data.scan_date||''}</span></div>`;
+  if(!recs.length){
+    h+=`<div class="empty"><div class="empty-ttl">No fresh setups today</div><div class="empty-sub">Either no qualifying RNS dropped in the last 2 days, or price action failed to confirm the catalyst. Holding cash is the correct trade. Come back tomorrow at 7am.</div></div>`;
+  }else{
+    h+=`<div class="sec-head">${recs.length} fresh setup${recs.length!==1?'s':''} — today/yesterday RNS only, price confirmed</div>`;
+    recs.forEach(r=>{h+=card(r,acc,rk);});
+  }
+  if(watch.length){
+    h+=`<div class="sec-head" style="margin-top:16px">Watchlist — filtered out or not yet actionable</div><div class="w-wrap">`;
+    watch.forEach(w=>{h+=`<div class="w-row"><span class="wtkr">${w.ticker}</span><span class="wco">${w.company||''}</span><span class="wrsn">${w.reason||''}</span></div>`;});
+    h+=`</div>`;
+  }
+  document.getElementById('res').innerHTML=h;
+}
+
+function card(rec,acc,rk){
+  const em=((rec.entry_low||0)+(rec.entry_high||0))/2||1;
+  const sl=rec.stop_loss||em*.92,tgt=rec.target||em*1.5;
+  const sp=Math.max(((em-sl)/em)*100,.5);
+  const up=((tgt-em)/em)*100;
+  const rr=sp>0?up/sp:0;
+  const er=rec.setup_type==='T3'?Math.min(rk,1.0):rk;
+  const ra=acc*er/100;
+  const rps=(em/100)*(sp/100);
+  const sh=rps>0?Math.max(Math.floor(ra/rps),0):0;
+  const pv=Math.round((sh*em)/100);
+  const pp=acc>0?(pv/acc*100):0;
+  const pg=Math.round(sh*(tgt-em)/100);
+  const sc=rec.score||0;
+  const scol=sc>=8?'#22c55e':sc>=6?'#60a5fa':'#f59e0b';
+  const spct=(sc/10)*100;
+  const bc=rec.setup_type==='T1'?'bt1':rec.setup_type==='T2'?'bt2':'bt3';
+  const pw=pp>30?' — consider tighter stop':'';
+  const freshClass=rec.catalyst_date==='today'?'fresh-today':'fresh-yesterday';
+  const freshLabel=rec.catalyst_date==='today'?'RNS: Today':'RNS: Yesterday';
+  const pa=rec.price_action_since||'';
+  const paClass=pa.toLowerCase().match(/fad|down|weak|drop|fell|declin|reject/)? 'pc-negative':'pc-positive';
+  return `<div class="card">
+<div class="card-head">
+<div class="tkr-row">
+  <span class="tkr">${rec.ticker}</span>
+  <span class="co">${rec.company||''}</span>
+  <span class="badge ${bc}">${rec.setup_type||''} · ${rec.setup_name||''}</span>
+  <span class="sct">${rec.sector||''}</span>
+</div>
+<div class="sc-wrap"><span class="sc-num" style="color:${scol}">${sc}/10</span><div class="sc-bar"><div class="sc-fill" style="width:${spct}%;background:${scol}"></div></div></div>
+</div>
+<div class="card-body">
+<div class="cat-txt"><span class="cat-lbl">Catalyst: </span>${rec.catalyst||'—'} <span class="freshness ${freshClass}">${freshLabel}</span></div>
+${pa?`<div class="price-confirm ${paClass}">● Price since RNS: ${pa}</div>`:''}
+<div class="mgrid">
+<div class="mbox"><div class="mlbl">Entry range</div><div class="mval me">${rec.entry_low||'?'}–${rec.entry_high||'?'}p</div></div>
+<div class="mbox"><div class="mlbl">Stop loss</div><div class="mval ms">${sl}p</div></div>
+<div class="mbox"><div class="mlbl">Target</div><div class="mval mt">${tgt}p</div></div>
+<div class="mbox"><div class="mlbl">R:R ratio</div><div class="mval mr">${rr.toFixed(1)}:1</div></div>
+</div>
+<div class="rat">${rec.rationale||''}</div>
+${rec.key_risk?`<div class="krisk">⚠ Key risk: ${rec.key_risk}</div>`:''}
+</div>
+<div class="alloc-strip">
+<div><div class="alloc-main">BUY £${pv.toLocaleString()} · ${sh.toLocaleString()} shares</div><div class="alloc-sub">${pp.toFixed(1)}% of your £${acc.toLocaleString()} account${pw}</div></div>
+<div class="alloc-stats">
+<span class="asr">Risk: £${Math.round(ra)} (${er}%)</span>
+<span class="asu">Upside: +£${pg.toLocaleString()} (+${up.toFixed(0)}%)</span>
+${rec.setup_type==='T3'?'<span class="ast">T3: half-size until catalyst confirms</span>':''}
+</div>
+</div>
+</div>`;
+}
+
+function rerender(){if(!last)return;const a=parseFloat(document.getElementById('av').value)||10000;const r=parseFloat(document.getElementById('rm').value)||1.5;last.acc=a;last.rk=r;render(last.parsed,a,r);}
+document.getElementById('av').addEventListener('input',rerender);
+document.getElementById('rm').addEventListener('change',rerender);
+</script>
+</body>
+</html>
